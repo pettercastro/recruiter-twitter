@@ -1,0 +1,10 @@
+**/.idea
+**/*.swp
+**/.tox
+**/.ropeproject
+**/*.egg-*
+**/*.pyc
+
+x_archives
+dist
+twitter.cfg
