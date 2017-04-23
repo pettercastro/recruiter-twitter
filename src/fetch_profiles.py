@@ -4,6 +4,9 @@ from datetime import datetime
 import mongodb as db
 
 
+GLOBAL_UPDATE = False
+
+
 twitter = Twitter('../twitter.cfg')
 
 
@@ -11,6 +14,22 @@ def read_root_accounts(filename):
     with open(filename, 'r') as file:
         for line in file:
             yield line
+
+
+def save_user(user):
+    new_user = {}
+    new_user['_id'] = user['screen_name']
+    new_user['name'] = user['name']
+    new_user['location'] = user['location']
+    new_user['description'] = user['description']
+    new_user['followers_count'] = user['followers_count']
+    new_user['friends_count'] = user['friends_count']
+    new_user['time_zone'] = user['time_zone']
+    new_user['geo_enabled'] = user['geo_enabled']
+    new_user['statuses_count'] = user['statuses_count']
+    new_user['lang'] = user['lang']
+    new_user['date_last_tweet'] = user['status']['created_at']
+    db.insert_user(new_user)
 
 
 def get_diff_between_twitter_date_and_today(date):
@@ -35,16 +54,9 @@ def valid_user(user):
     return True
 
 
-def get_followers_ids(screen_name):
-    return twitter.request_cursor(
-        'followers/ids',
-        {'screen_name': screen_name, 'stringify_ids': True, 'count': 5000}
-    )
-
-
 def get_followers(screen_name):
     cursor = db.get_cursor_by_id(screen_name)
-    if cursor:
+    if cursor and cursor['current'] != 0:
         current_c = cursor['current']
     else:
         current_c = -1
@@ -57,22 +69,37 @@ def get_followers(screen_name):
     for data in batch:
         db.insert_or_update_cursor(screen_name, current_c)
 
+        all_users_exist = True
         for item in data['users']:
-            yield item
+            user_exist = yield item
+            if not user_exist:
+                all_users_exist = False
+
+        if all_users_exist:
+            break
 
         current_c = data['next_cursor']
 
+    db.insert_or_update_cursor(screen_name, 0)
+
 
 def save_profiles(screen_name):
-    obj = db.get_root_by_id(screen_name)
-    if not obj:
-        for user in get_followers(screen_name):
+    followers = get_followers(screen_name)
+    for user in followers:
+        try:
             print('Getting user {}'.format(user['screen_name']))
             is_valid = valid_user(user)
+            generator_param = True
             if is_valid:
-                db.save_if_not_exists(user)
+                user_exists = db.user_exists(user['_id'])
+                generator_param = user_exists
+                if not user_exists:
+                    save_user(user)
 
-        db.insert_root(screen_name)
+            followers.send(generator_param)
+
+        except Exception as e:
+            db.save_error({'data': user['screen_name'], 'error': str(e)})
 
 
 accounts = read_root_accounts('../data/root_accounts.txt')
