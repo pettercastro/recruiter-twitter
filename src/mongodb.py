@@ -8,19 +8,21 @@ db = client.recruiter_twitter
 # db.user_profile.drop()
 # db.root.drop()
 # db.network.drop()
-db.error.drop()
+db.twitter_user.drop()
+db.cursor.drop()
+db.errors.drop()
 
 
 def get_user_by_id(mid):
-    return db.user.find_one({'_id': mid})
+    return db.twitter_user.find_one({'_id': mid})
 
 
 def insert_user(obj):
-    db.user.insert_one(obj)
+    db.twitter_user.insert_one(obj)
 
 
 def get_all_users():
-    return db.user.find()
+    return db.twitter_user.find()
 
 
 def user_exists(mid):
@@ -65,4 +67,4 @@ def insert_user_tweets_processed(mid):
 
 
 def save_error(data):
-    db.error.insert_one(data)
+    db.errors.insert_one(data)

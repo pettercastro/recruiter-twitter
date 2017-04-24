@@ -4,7 +4,7 @@ from datetime import datetime
 import mongodb as db
 
 
-GLOBAL_UPDATE = False
+MAX_NUMBER_FOLLOWERS = 20000
 
 
 twitter = Twitter('../twitter.cfg')
@@ -55,6 +55,7 @@ def valid_user(user):
 
 
 def get_followers(screen_name):
+
     cursor = db.get_cursor_by_id(screen_name)
     if cursor and cursor['current'] != 0:
         current_c = cursor['current']
@@ -83,18 +84,24 @@ def get_followers(screen_name):
     db.insert_or_update_cursor(screen_name, 0)
 
 
-def save_profiles(screen_name):
+def save_profiles(screen_name, max_followers):
     followers = get_followers(screen_name)
+    cont = 1
     for user in followers:
         try:
             print('Getting user {}'.format(user['screen_name']))
             is_valid = valid_user(user)
             generator_param = True
             if is_valid:
-                user_exists = db.user_exists(user['_id'])
+                user_exists = db.user_exists(user['screen_name'])
                 generator_param = user_exists
                 if not user_exists:
                     save_user(user)
+
+                if cont > max_followers:
+                    return
+
+                cont += 1
 
             followers.send(generator_param)
 
@@ -105,6 +112,6 @@ def save_profiles(screen_name):
 accounts = read_root_accounts('../data/root_accounts.txt')
 for root_account in accounts:
     print('Saving followers profiles for root acount {}'.format(root_account))
-    save_profiles(root_account)
+    save_profiles(root_account, MAX_NUMBER_FOLLOWERS)
 
 print('DONE!')
