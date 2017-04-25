@@ -19,6 +19,7 @@ def read_root_accounts(filename):
 def save_user(user):
     new_user = {}
     new_user['_id'] = user['screen_name']
+    new_user['id_str'] = user['id_str']
     new_user['name'] = user['name']
     new_user['location'] = user['location']
     new_user['description'] = user['description']

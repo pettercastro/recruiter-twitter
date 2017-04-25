@@ -8,9 +8,9 @@ db = client.recruiter_twitter
 # db.user_profile.drop()
 # db.root.drop()
 # db.network.drop()
-db.twitter_user.drop()
-db.cursor.drop()
-db.errors.drop()
+# db.twitter_user.drop()
+# db.cursor.drop()
+# db.errors.drop()
 
 
 def get_user_by_id(mid):

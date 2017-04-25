@@ -1,4 +1,5 @@
 from TwitterAPI import TwitterAPI, TwitterRestPager
+from TwitterAPI.TwitterError import TwitterConnectionError
 import configparser
 import time
 
@@ -16,15 +17,20 @@ class Twitter(object):
 
     def request(self, resource, params, max_tries=5):
         for i in range(max_tries):
-            response = self.twitter.request(resource, params)
-            if response.status_code == 200:
-                return response
-            elif response.status_code in [429, 503]:
-                print('Got error: {}\nSleeping for 15 minutes.'.format(response.text))
+            try:
+                response = self.twitter.request(resource, params)
+                if response.status_code == 200:
+                    return response
+                elif response.status_code in [429, 503]:
+                    print('Got error: {}\nSleeping for 15 minutes.'.format(response.text))
+                    time.sleep(61 * 15)
+                else:
+                    print(response)
+                    raise ValueError(response.json())
+            except TwitterConnectionError as e:
+                print('Got a connection error: {}\nSleeping for 15 minutes.'.format(resource))
                 time.sleep(61 * 15)
-            else:
-                print(response)
-                raise ValueError(response.json())
+
 
     def request_paginated(self, resource, params):
         response = TwitterRestPager(self.twitter, resource, params)
