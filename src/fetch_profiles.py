@@ -65,7 +65,7 @@ def get_followers(screen_name):
 
     batch = twitter.request_cursor(
         'followers/list',
-        {'screen_name': screen_name, 'cursor': current_c}
+        {'screen_name': screen_name, 'cursor': current_c, 'count': 200}
     )
 
     for data in batch:

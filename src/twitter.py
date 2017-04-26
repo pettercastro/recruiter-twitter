@@ -1,4 +1,4 @@
-from TwitterAPI import TwitterAPI, TwitterRestPager
+from TwitterAPI import TwitterAPI
 from TwitterAPI.TwitterError import TwitterConnectionError
 import configparser
 import time
@@ -27,28 +27,27 @@ class Twitter(object):
                 else:
                     print(response)
                     raise ValueError(response.json())
-            except TwitterConnectionError as e:
+            except TwitterConnectionError:
                 print('Got a connection error: {}\nSleeping for 15 minutes.'.format(resource))
                 time.sleep(61 * 15)
 
+    def request_timeline(self, resource, params):
+        while True:
+            response = self.request(resource, params)
+            data = response.json()
+            if not data:
+                break
 
-    def request_paginated(self, resource, params):
-        response = TwitterRestPager(self.twitter, resource, params)
-        for item in response.get_iterator():
-            if 'text' in item:
-                yield item
-            elif 'message' in item and item['code'] in [88, 429, 503]:
-                print('Got error: {}\nSleeping for 15 minutes.'.format(item['message']))
-                time.sleep(61 * 15)
-            else:
-                print(item)
-                raise ValueError(item)
+            mid = None
+            batch = []
+            for item in response.get_iterator():
+                mid = item['id']
+                batch.append(item)
+
+            yield batch
+            params['max_id'] = mid - 1
 
     def request_cursor(self, resource, params):
-        if 'cursor' not in params:
-            params['cursor'] = -1
-        if 'count' not in params:
-            params['count'] = 200
         while True:
             response = self.request(resource, params)
             data = response.json()

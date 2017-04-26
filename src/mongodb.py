@@ -50,20 +50,27 @@ def insert_or_update_cursor(screen_name, cursor):
         )
 
 
-def save_tweets(tweets):
+def insert_tweets(tweets):
     db.user_tweets.insert_many(tweets)
 
 
-def get_tweet_by_id(mid):
-    return db.user_tweets.find_one({'_id': mid})
+def get_max_id_by_id(screen_name):
+    return db.max_id.find_one({'_id': screen_name})
 
 
-def get_user_tweets_processed(mid):
-    return db.user_tweets_processed.find_one({'_id': mid})
-
-
-def insert_user_tweets_processed(mid):
-    db.user_tweets_processed.insert_one({'_id': mid})
+def insert_or_update_max_id_tweet(screen_name, max_id):
+    if not get_max_id_by_id(screen_name):
+        db.max_id.insert_one({
+            '_id': screen_name,
+            'max_id': max_id
+        })
+    else:
+        db.max_id.update(
+            {'_id': screen_name},
+            {'$set': {
+                'max_id': max_id
+            }}
+        )
 
 
 def save_error(data):
