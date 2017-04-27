@@ -50,6 +50,25 @@ def insert_or_update_cursor(screen_name, cursor):
         )
 
 
+def get_cursor_followers_by_id(screen_name):
+    return db.cursor_follower.find_one({'_id': screen_name})
+
+
+def insert_or_update_cursor_followers(screen_name, cursor):
+    if not get_cursor_followers_by_id(screen_name):
+        db.cursor_follower.insert_one({
+            '_id': screen_name,
+            'current': cursor
+        })
+    else:
+        db.cursor_follower.update(
+            {'_id': screen_name},
+            {'$set': {
+                'current': cursor
+            }}
+        )
+
+
 def insert_tweets(tweets):
     db.user_tweets.insert_many(tweets)
 
@@ -71,6 +90,15 @@ def insert_or_update_max_id_tweet(screen_name, max_id):
                 'max_id': max_id
             }}
         )
+
+
+def get_network_follower(user_id, follower_id):
+    return db.network_follower.find_one({'user_id': user_id, 'follower_id': follower_id})
+
+
+def insert_follower_if_not_exists(user_id, follower_id):
+    if not get_network_follower(user_id, follower_id):
+        db.network_follower.insert_one({'user_id': user_id, 'follower_id': follower_id})
 
 
 def save_error(data):
