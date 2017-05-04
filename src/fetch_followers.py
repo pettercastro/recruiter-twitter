@@ -24,9 +24,9 @@ def save_followers(screen_name):
         db.insert_or_update_cursor_followers(screen_name, current_c)
 
         for item in data['ids']:
-            user = db.get_user_by_id(data['ids'])
+            user = db.get_user_by_id_str(item)
             if user:
-                db.insert_follower_if_not_exists(screen_name, user['screen_name'])
+                db.insert_follower_if_not_exists(screen_name, user['_id'])
 
         current_c = data['next_cursor']
 
@@ -37,4 +37,5 @@ twitter = Twitter('../twitter.cfg')
 
 users_profiles = db.get_all_users()
 for user in users_profiles:
+    print('Getting followers for {}'.format(user['_id']))
     save_followers(user['_id'])

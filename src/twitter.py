@@ -25,7 +25,7 @@ class Twitter(object):
                     print('Got error: {}\nSleeping for 15 minutes.'.format(response.text))
                     time.sleep(61 * 15)
                 else:
-                    print(response)
+                    print(params)
                     raise ValueError(response.json())
             except TwitterConnectionError:
                 print('Got a connection error: {}\nSleeping for 15 minutes.'.format(resource))

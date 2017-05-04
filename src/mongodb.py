@@ -10,11 +10,19 @@ db = client.recruiter_twitter
 # db.network.drop()
 # db.twitter_user.drop()
 # db.cursor.drop()
-# db.errors.drop()
+# db.user_tweets.drop()
+# db.max_id.drop()
+# db.errors_tweets.drop()
+db.cursor_follower.drop()
+db.network_follower.drop()
 
 
 def get_user_by_id(mid):
     return db.twitter_user.find_one({'_id': mid})
+
+
+def get_user_by_id_str(id_str):
+    return db.twitter_user.find_one({'id_str': id_str})
 
 
 def insert_user(obj):
@@ -103,3 +111,6 @@ def insert_follower_if_not_exists(user_id, follower_id):
 
 def save_error(data):
     db.errors.insert_one(data)
+
+def save_error_tweets(data):
+    db.errors_tweets.insert_one(data)
